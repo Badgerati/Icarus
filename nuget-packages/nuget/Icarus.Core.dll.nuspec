@@ -13,5 +13,8 @@
     <releaseNotes>https://github.com/Badgerati/Icarus/releases</releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>icarus json datastore storage data store</tags>
+    <dependencies>
+      <dependency id="Json.NET" version="8.0.3" />
+    </dependencies>
   </metadata>
 </package>

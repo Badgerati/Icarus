@@ -4,11 +4,14 @@ Icarus
 [![Build Status](https://travis-ci.org/Badgerati/Icarus.svg?branch=master)](https://travis-ci.org/Badgerati/Icarus)
 [![Build status](https://ci.appveyor.com/api/projects/status/4p7lnp05lebirjxm?svg=true)](https://ci.appveyor.com/project/Badgerati/icarus)
 [![Code Climate](https://codeclimate.com/github/Badgerati/Icarus/badges/gpa.svg)](https://codeclimate.com/github/Badgerati/Icarus)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Badgerati/Icarus/master/LICENSE.txt)
 
-Icarus is a simple JSON DataStore tool, no running services just reference the library and point Icarus to a location. All data will be saved at the location in plain JSON format. Icarus used JSON.NET behind the scenes.
+Icarus is a simple JSON DataStore tool, no running services just reference the library and point Icarus to a location. All data will be saved at the location in plain JSON format. Icarus uses JSON.NET behind the scenes.
+
+All data is stored on memory when your application starts, for quicker queries and processing.
 
 Notes:
- * Icarus is in beta, so currently is designed for small to medium datasets. If you're using large datasets, it might be best to use something like MongoDB. (you can risk using Icarus if you like though, I won't stop you!)
+ * Icarus is in beta, so currently is designed for small to medium datasets (about 1 - 50,000 records per collection). If you're using large datasets, it might be best to use something like MongoDB. (you can risk using Icarus if you like though, I won't stop you!)
  * Icarus has not been tested on parallel processed yet, so use at risk.
 
 Features
@@ -20,6 +23,14 @@ Features
 * Fast and clean.
 * Able to Insert, Update, Remove and Find.
 * Ability to cache data for extra speed.
+
+Performance Tips
+================
+If you find that inserting/updating or removing records is slow, then each of the methods has an optional `persist` parameter that you can pass. By default this is enabled, so every time you insert/update or remove a record it is persisted to storage. If, however, you pass this in as false then your calls will dramatically increase in speed.
+
+Please note however, if you're choosing to disable persisting then you will **NEED** to persist the collection to storage every now and then, and definitely when your application closes. I can't imagine you'd want to lose everything, right?
+
+(If you're working with medium to large datasets, it might be wise to have persisting disabled and to persist once in a while instead)
 
 Installing Icarus
 =================
@@ -116,14 +127,16 @@ This time, the InsertMany method will return a list of the objects inserted.
 
 Finding Objects
 ---------------
-There are 4 ways of finding objects with Icarus:
+There are 6 ways of finding objects with Icarus:
 
  * `Find(<ID>)`
  * `FindMany(<ID_ARRAY>)`
+ * `Find(<JSON_PATH>)`
  * `FindMany(<JSON_PATH>)`
+ * `Find(<FIELD_NAME>, <VALUE>, <EQUALITY_FILTER>)`
  * `FindMany(<FIELD_NAME>, <VALUE>, <EQUALITY_FILTER>)`
 
-The first two are just finding objects by their unique ID. The latter two are more advanced, one is for finding objects by manually specifying a JSONPath; and the last is pass one of the object's field names, it's expected value and the type of equality to filter (to the field equals the value, less than, greater than, etc).
+The first two are just finding objects by their unique ID. The latter ones are more advanced, two are for finding objects by manually specifying a JSONPath; and the last two is pass one of the object's field names, it's expected value and the type of equality to filter (to the field equals the value, less than, greater than, etc).
 
 To find a single object by it's ID you can do:
 
@@ -231,14 +244,9 @@ To Do
 
 * Look into making Icarus work better with massive datasets.
 * Get Icarus working with parallel processes.
-* Implement singular Find methods for JSONPath/FieldValue.
 
 Bugs and Feature Requests
 =========================
 
 For any bugs you may find or features you wish to request, please create an [issue](https://github.com/Badgerati/Icarus/issues "Issues") in GitHub.
 
-License
-=======
-
-Icarus is completely open sourced and free under the MIT License.

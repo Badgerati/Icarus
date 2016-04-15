@@ -152,6 +152,94 @@ namespace Icarus.Test
             Assert.AreEqual(1, item._id);
         }
 
+        [Test]
+        [TestCase(1, IcarusEqualityFilter.Equal, false)]
+        [TestCase(3, IcarusEqualityFilter.Equal, true)]
+        [TestCase(2, IcarusEqualityFilter.LessThan, false)]
+        [TestCase(1, IcarusEqualityFilter.LessThan, true)]
+        [TestCase(1, IcarusEqualityFilter.LessThanOrEqual, false)]
+        [TestCase(0, IcarusEqualityFilter.LessThanOrEqual, true)]
+        [TestCase(1, IcarusEqualityFilter.GreaterThan, false)]
+        [TestCase(2, IcarusEqualityFilter.GreaterThan, true)]
+        [TestCase(3, IcarusEqualityFilter.GreaterThanOrEqual, true)]
+        [TestCase(2, IcarusEqualityFilter.GreaterThanOrEqual, false)]
+        [TestCase(2, IcarusEqualityFilter.NotEqual, false)]
+        public void Find_Filter_Success(object value, IcarusEqualityFilter filter, bool isNull)
+        {
+            var icarus = IcarusClient.Instance;
+            var obj1 = new SomeObject() { SomeInt = 1, SomeString = "Hello1", Temp = "Anything1" };
+            var obj2 = new SomeObject() { SomeInt = 2, SomeString = "Hello2", Temp = "Anything2" };
+
+            var items = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").InsertMany(new[] { obj1, obj2 });
+            Assert.AreEqual(2, items.Count);
+            Assert.AreEqual(1, items[0]._id);
+            Assert.AreEqual(2, items[1]._id);
+
+            var item = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").Find("SomeInt", value, filter);
+
+            if (isNull)
+            {
+                Assert.IsNull(item);
+            }
+            else
+            {
+                Assert.IsNotNull(item);
+            }
+        }
+
+        [Test]
+        [TestCase(3, IcarusEqualityFilter.LessThan)]
+        [TestCase(3, IcarusEqualityFilter.LessThanOrEqual)]
+        [TestCase(0, IcarusEqualityFilter.GreaterThan)]
+        [TestCase(0, IcarusEqualityFilter.GreaterThanOrEqual)]
+        [TestCase(3, IcarusEqualityFilter.NotEqual)]
+        [ExpectedException(typeof(IcarusException))]
+        public void Find_Filter_FailForMultiple(object value, IcarusEqualityFilter filter)
+        {
+            var icarus = IcarusClient.Instance;
+            var obj1 = new SomeObject() { SomeInt = 1, SomeString = "Hello1", Temp = "Anything1" };
+            var obj2 = new SomeObject() { SomeInt = 2, SomeString = "Hello2", Temp = "Anything2" };
+
+            var items = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").InsertMany(new[] { obj1, obj2 });
+            Assert.AreEqual(2, items.Count);
+            Assert.AreEqual(1, items[0]._id);
+            Assert.AreEqual(2, items[1]._id);
+
+            var item = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").Find("SomeInt", value, filter);
+        }
+
+        [Test]
+        public void Find_JsonPath_Success()
+        {
+            var icarus = IcarusClient.Instance;
+            var obj1 = new SomeObject() { SomeInt = 1, SomeString = "Hello1", Temp = "Anything1" };
+            var obj2 = new SomeObject() { SomeInt = 2, SomeString = "Hello2", Temp = "Anything2" };
+
+            var items = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").InsertMany(new[] { obj1, obj2 });
+            Assert.AreEqual(2, items.Count);
+            Assert.AreEqual(1, items[0]._id);
+            Assert.AreEqual(2, items[1]._id);
+
+            var item = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").Find("$[?(@.SomeInt == 2)]");
+            Assert.IsNotNull(item);
+        }
+
+        [Test]
+        [ExpectedException(typeof(IcarusException))]
+        public void Find_JsonPath_FailForMultiple()
+        {
+            var icarus = IcarusClient.Instance;
+            var obj1 = new SomeObject() { SomeInt = 2, SomeString = "Hello1", Temp = "Anything1" };
+            var obj2 = new SomeObject() { SomeInt = 2, SomeString = "Hello2", Temp = "Anything2" };
+
+            var items = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").InsertMany(new[] { obj1, obj2 });
+            Assert.AreEqual(2, items.Count);
+            Assert.AreEqual(1, items[0]._id);
+            Assert.AreEqual(2, items[1]._id);
+
+            var item = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").Find("$[?(@.SomeInt == 2)]");
+        }
+
         #endregion
 
         #region Find Many Test
@@ -335,6 +423,38 @@ namespace Icarus.Test
             Assert.AreEqual("Updated", item.SomeString);
             Assert.AreEqual(1, item.SomeInt);
             Assert.AreEqual(1, item._id);
+        }
+
+        #endregion
+
+        #region Large Datasets
+
+        [Test]
+        [TestCase(10, 6)]
+        //[TestCase(100, 60)]
+        //[TestCase(1000, 600)]
+        //[TestCase(10000, 6000)]
+        //[TestCase(100000, 60000)]
+        public void LargeDataSet(int amount, int toFind)
+        {
+            var icarus = IcarusClient.Instance;
+            var collection = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store");
+
+            for (var i = 1; i <= amount; i++)
+            {
+                var _obj = new SomeObject() { SomeInt = i, SomeString = "Hello" + i, Temp = "Anything" + i };
+                var _item = collection.Insert(_obj, false);
+                Assert.AreEqual(i, _item._id);
+            }
+
+            collection.Persist();
+            collection.Refresh();
+
+            var item = collection.Find(toFind);
+            Assert.IsNotNull(item);
+            Assert.AreEqual("Hello" + toFind, item.SomeString);
+            Assert.AreEqual(toFind, item.SomeInt);
+            Assert.AreEqual(toFind, item._id);
         }
 
         #endregion

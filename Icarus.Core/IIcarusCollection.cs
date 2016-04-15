@@ -26,6 +26,8 @@ namespace Icarus.Core
         IList<T> InsertMany(T[] items, bool persist = true);
 
         T Find(long id);
+        T Find(string jsonPath);
+        T Find(string fieldName, object value, IcarusEqualityFilter filter = IcarusEqualityFilter.Equal);
         IList<T> FindMany(long[] ids);
         IList<T> FindMany(string jsonPath);
         IList<T> FindMany(string fieldName, object value, IcarusEqualityFilter filter = IcarusEqualityFilter.Equal);

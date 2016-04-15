@@ -21,7 +21,6 @@ namespace Icarus.Core
         #region Constants
 
         private const string FileExtension = ".json";
-        private const string BackupTag = "_backup";
         private const string NextPrimaryIdKey = "NextPrimaryId";
         private const string DataKey = "Data";
         private const string PrimaryIdKey = "_id";
@@ -79,8 +78,7 @@ namespace Icarus.Core
         #endregion
 
         #region Fields
-
-        private string _backupLocation = string.Empty;
+        
         private long _nextPrimaryId = DefaultNextPrimaryId;
         private IDictionary<long, JToken> _primaryIndex = default(IDictionary<long, JToken>);
 
@@ -102,7 +100,6 @@ namespace Icarus.Core
         public IcarusCollection(string dataStoreLocation, string collectionName)
         {
             var path = Path.Combine(dataStoreLocation, collectionName + FileExtension);
-            _backupLocation = Path.Combine(dataStoreLocation, collectionName + BackupTag + FileExtension);
 
             // Create file if it doesn't exist
             if (!File.Exists(path))
@@ -261,21 +258,20 @@ namespace Icarus.Core
             {
                 // Search for a token matching the ID
                 var _item = GetTokenById(id);
+                var _castItem = default(T);
 
                 if (_item != default(JToken))
                 {
-                    var _castItem = CastToObject(_item);
+                    _castItem = CastToObject(_item);
 
                     // If caching, and not in index then add to index
                     if (CachingEnabled && !_primaryIndex.ContainsKey(id))
                     {
                         _primaryIndex.Add(id, _item);
                     }
-                    
-                    return _castItem;
                 }
-
-                return default(T);
+                
+                return _castItem;
             }
             catch (Exception ex)
             {
@@ -298,6 +294,46 @@ namespace Icarus.Core
             }
 
             return ids.Select(x => Find(x)).ToList();
+        }
+
+        /// <summary>
+        /// Finds an item using the specified json path from the Icarus DataStore.
+        /// </summary>
+        /// <param name="jsonPath">The json path to search.</param>
+        /// <returns>
+        /// An item found with their identifiers
+        /// </returns>
+        /// <exception cref="IcarusException">An exception was thrown while retrieving from the collection.</exception>
+        public T Find(string jsonPath)
+        {
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                return default(T);
+            }
+
+            try
+            {
+                // Search for a tokens matching the JSONPath
+                var _item = GetTokenByJsonPath(jsonPath);
+                var _castItem = default(T);
+
+                if (_item != default(JToken))
+                {
+                    _castItem = CastToObject(_item);
+
+                    // If caching, and not in index then add to index
+                    if (CachingEnabled && !_primaryIndex.ContainsKey(_castItem._id))
+                    {
+                        _primaryIndex.Add(_castItem._id, _item);
+                    }
+                }
+
+                return _castItem;
+            }
+            catch (Exception ex)
+            {
+                throw new IcarusException("An exception was thrown while retrieving from the collection.", ex);
+            }
         }
 
         /// <summary>
@@ -331,6 +367,25 @@ namespace Icarus.Core
             {
                 throw new IcarusException("An exception was thrown while retrieving from the collection.", ex);
             }
+        }
+
+        /// <summary>
+        /// Finds an item using the specified field name, value and equality filter.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="value">The value of the field.</param>
+        /// <param name="filter">The filter to use when searching.</param>
+        /// <returns>
+        /// An item found with their identifiers
+        /// </returns>
+        public T Find(string fieldName, object value, IcarusEqualityFilter filter = IcarusEqualityFilter.Equal)
+        {
+            if (string.IsNullOrWhiteSpace(fieldName))
+            {
+                return default(T);
+            }
+
+            return Find(ConstructJsonPathFromFieldValuePair(fieldName, value, filter));
         }
 
         /// <summary>
@@ -560,9 +615,6 @@ namespace Icarus.Core
         {
             try
             {
-                // Backup the current datastore
-                File.Copy(CollectionLocation, _backupLocation, true);
-
                 // Update the next primary ID
                 _json[NextPrimaryIdKey] = NextPrimaryId;
 
@@ -574,19 +626,9 @@ namespace Icarus.Core
                         _json.WriteTo(jsonWriter);
                     }
                 }
-
-                // Remove the backup
-                File.Delete(_backupLocation);
             }
             catch (Exception ex)
             {
-                // If backup exists, attempt to restore the backup
-                if (File.Exists(_backupLocation))
-                {
-                    File.Copy(_backupLocation, CollectionLocation, true);
-                    File.Delete(_backupLocation);
-                }
-
                 throw new IcarusException("An exception was thrown while persisting data to the Icarus DataStore.", ex);
             }
         }
@@ -637,6 +679,11 @@ namespace Icarus.Core
 
         private T CastToObject(JToken item)
         {
+            if (item == default(JToken))
+            {
+                return default(T);
+            }
+
             return item.ToObject<T>();
         }
 
@@ -644,7 +691,7 @@ namespace Icarus.Core
         {
             return CachingEnabled && _primaryIndex.ContainsKey(id)
                 ? _primaryIndex[id]
-                : _data.SelectTokens("$[?(@." + PrimaryIdKey + " == " + id + ")]").SingleOrDefault();
+                : GetTokenByJsonPath("$[?(@." + PrimaryIdKey + " == " + id + ")]");
         }
 
         private IEnumerable<JToken> GetTokensByJsonPath(string jsonPath)
@@ -652,9 +699,14 @@ namespace Icarus.Core
             return _data.SelectTokens(jsonPath);
         }
 
+        private JToken GetTokenByJsonPath(string jsonPath)
+        {
+            return _data.SelectToken(jsonPath);
+        }
+
         private string ConstructJsonPathFromFieldValuePair(string fieldName, object value, IcarusEqualityFilter filter)
         {
-            return string.Format("$[?(@.{0} {1} {2})]", fieldName, MapEqualityFilter(filter), MapValueObjectType(value));
+            return "$[?(@." + fieldName + " " + MapEqualityFilter(filter) + " " + MapValueObjectType(value) + ")]";
         }
 
         private string MapEqualityFilter(IcarusEqualityFilter filter)
