@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Icarus by Badgerati</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Icarus</h1>
+        <h2>Icarus is a simple JSON data store.</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/Badgerati/Icarus/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/Badgerati/Icarus/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/Badgerati/Icarus" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="icarus" class="anchor" href="#icarus" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Icarus</h1>
+
+<p><a href="https://travis-ci.org/Badgerati/Icarus"><img src="https://travis-ci.org/Badgerati/Icarus.svg?branch=master" alt="Build Status"></a>
+<a href="https://ci.appveyor.com/project/Badgerati/icarus"><img src="https://ci.appveyor.com/api/projects/status/4p7lnp05lebirjxm?svg=true" alt="Build status"></a>
+<a href="https://codeclimate.com/github/Badgerati/Icarus"><img src="https://codeclimate.com/github/Badgerati/Icarus/badges/gpa.svg" alt="Code Climate"></a>
+<a href="https://raw.githubusercontent.com/Badgerati/Icarus/master/LICENSE.txt"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT licensed"></a></p>
+
+<p>Icarus is a simple JSON DataStore tool, no running services just reference the library and point Icarus to a location. All data will be saved at the location in plain JSON format. Icarus uses JSON.NET behind the scenes.</p>
+
+<p>All data is stored on memory when your application starts, for quicker queries and processing.</p>
+
+<p>Notes:</p>
+
+<ul>
+<li>Icarus is in beta, so currently is designed for small to medium datasets (about 1 - 50,000 records per collection). If you're using large datasets, it might be best to use something like MongoDB. (you can risk using Icarus if you like though, I won't stop you!)</li>
+<li>Icarus has not been tested on parallel processed yet, so use at risk.</li>
+</ul>
+
+<h1>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h1>
+
+<ul>
+<li>Data is stored in JSON format.</li>
+<li>All data is stored into some specified location.</li>
+<li>DataStores can have multiple collections.</li>
+<li>Fast and clean.</li>
+<li>Able to Insert, Update, Remove and Find.</li>
+<li>Ability to cache data for extra speed.</li>
+</ul>
+
+<h1>
+<a id="performance-tips" class="anchor" href="#performance-tips" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Performance Tips</h1>
+
+<p>If you find that inserting/updating or removing records is slow, then each of the methods has an optional <code>persist</code> parameter that you can pass. By default this is enabled, so every time you insert/update or remove a record it is persisted to storage. If, however, you pass this in as false then your calls will dramatically increase in speed.</p>
+
+<p>Please note however, if you're choosing to disable persisting then you will <strong>NEED</strong> to persist the collection to storage every now and then, and definitely when your application closes. I can't imagine you'd want to lose everything, right?</p>
+
+<p>(If you're working with medium to large datasets, it might be wise to have persisting disabled and to persist once in a while instead)</p>
+
+<h1>
+<a id="installing-icarus" class="anchor" href="#installing-icarus" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installing Icarus</h1>
+
+<p>For now you can clone the repository and build the <code>Icarus.Core</code> project, and use the <code>Icarus.Core.dll</code>.</p>
+
+<p>I will be uploading Icarus to NuGet soon.</p>
+
+<h1>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h1>
+
+<p>Using Icarus might feel somewhat similar to MongoDB. You can insert, update, remove and find your data inside of collections for each data store you create.</p>
+
+<h2>
+<a id="initialise-the-icarusclient" class="anchor" href="#initialise-the-icarusclient" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Initialise the IcarusClient</h2>
+
+<p>The main point of entry for everything is the <code>IcarusClient</code>. This is a lazy initialised class for accessing your data stores and collections. To initialise the client you use:</p>
+
+<div class="highlight highlight-source-cs"><pre>IcarusClient.Instance.Initialise(<span class="pl-s"><span class="pl-pds">"</span>&lt;SOME_LOCATION&gt;<span class="pl-pds">"</span></span>);</pre></div>
+
+<p>The <code>&lt;SOME_LOCATION&gt;</code> is where you would place the location to where you want Icarus to write everything. The <code>Initialise</code> method should really only be called once (it can be called multiple times if you wish), so its best calling it when your application spins up.</p>
+
+<h2>
+<a id="creating-data-stores-and-collections" class="anchor" href="#creating-data-stores-and-collections" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Creating Data Stores and Collections</h2>
+
+<p>A data store contains many collections, and Icarus can manage multiple data stores. Just think of a data store as being a database, and the collections being a database's tables.</p>
+
+<p>The only location you need to setup manually is the location where Icarus will write everything. This is the location that will be used to initialise the <code>IcarusClient</code>.</p>
+
+<p>To create your data stores and collections is very simple, just use them in code. If the data store or collection doesn't exist, Icarus will create them for you!</p>
+
+<p>To get your data store use:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> datastore = IcarusClient.Instance.GetDataStore(<span class="pl-s"><span class="pl-pds">"</span>&lt;DATA_STORE_NAME&gt;<span class="pl-pds">"</span></span>);</pre></div>
+
+<p>and to get your collection from the data store use:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;OBJECT_TYPE&gt;(<span class="pl-s"><span class="pl-pds">"</span>&lt;COLLECTION_NAME&gt;<span class="pl-pds">"</span></span>);</pre></div>
+
+<p>The <code>&lt;OBJECT_TYPE&gt;</code> for the collection is the generic type that Icarus will use when deserializing the JSON objects. It is important to note that this generic type MUST inherit the <code>IcarusObject</code> type.</p>
+
+<h2>
+<a id="icasusobject" class="anchor" href="#icasusobject" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>IcasusObject</h2>
+
+<p>All objects that will be stored with Icarus must inherit the <code>IcarusObject</code> class. This class contains the <code>_id</code> property that Icarus will use to set the object's unique ID against. It is imperative that you do not alter this value at all.</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-en">Person</span> : <span class="pl-k">IcarusObject</span>
+{
+}</pre></div>
+
+<p>The <code>_id</code> is a public value, so can be used as you wish.</p>
+
+<h2>
+<a id="inserting-objects" class="anchor" href="#inserting-objects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Inserting Objects</h2>
+
+<p>There are two methods to insert data into your collections:</p>
+
+<ul>
+<li><code>Insert(&lt;ITEM&gt;)</code></li>
+<li><code>InsertMany(&lt;ITEM_ARRAY&gt;)</code></li>
+</ul>
+
+<p>To insert an object, just do:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> person = <span class="pl-k">new</span> Person();
+person.Name = <span class="pl-s"><span class="pl-pds">"</span>Bob<span class="pl-pds">"</span></span>;
+person.Age = <span class="pl-c1">21</span>;
+
+<span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> item = collection.Insert(person);</pre></div>
+
+<p>The insert method will insert the object into the data store, and will return the item back with <code>_id</code> that Icarus has assigned it back. These unique IDs are what you will mainly pass throughout Icarus when removing and updating. If you ever need the ID, best thing to do is find the object with Icarus first and it will always return the ID for you (assuming the object exists in the collection, of course).</p>
+
+<p>The InsertMany method is basically just like insert, but will obviously let you insert multiple objects instead:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> person1 = <span class="pl-k">new</span> Person();
+person1.Name = <span class="pl-s"><span class="pl-pds">"</span>Bob<span class="pl-pds">"</span></span>;
+person1.Age = <span class="pl-c1">21</span>;
+
+<span class="pl-k">var</span> person2 = <span class="pl-k">new</span> Person();
+person2.Name = <span class="pl-s"><span class="pl-pds">"</span>Claire<span class="pl-pds">"</span></span>;
+person2.Age = <span class="pl-c1">22</span>;
+
+<span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> items = collection.InsertMany(<span class="pl-k">new</span>[] { person1, person2 });</pre></div>
+
+<p>This time, the InsertMany method will return a list of the objects inserted.</p>
+
+<h2>
+<a id="finding-objects" class="anchor" href="#finding-objects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Finding Objects</h2>
+
+<p>There are 6 ways of finding objects with Icarus:</p>
+
+<ul>
+<li><code>Find(&lt;ID&gt;)</code></li>
+<li><code>FindMany(&lt;ID_ARRAY&gt;)</code></li>
+<li><code>Find(&lt;JSON_PATH&gt;)</code></li>
+<li><code>FindMany(&lt;JSON_PATH&gt;)</code></li>
+<li><code>Find(&lt;FIELD_NAME&gt;, &lt;VALUE&gt;, &lt;EQUALITY_FILTER&gt;)</code></li>
+<li><code>FindMany(&lt;FIELD_NAME&gt;, &lt;VALUE&gt;, &lt;EQUALITY_FILTER&gt;)</code></li>
+</ul>
+
+<p>The first two are just finding objects by their unique ID. The latter ones are more advanced, two are for finding objects by manually specifying a JSONPath; and the last two is pass one of the object's field names, it's expected value and the type of equality to filter (to the field equals the value, less than, greater than, etc).</p>
+
+<p>To find a single object by it's ID you can do:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> person = collection.Find(<span class="pl-c1">1</span>);</pre></div>
+
+<p>To find multiple objects by their IDs you can use the following:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> persons = collection.FindMany(<span class="pl-k">new</span>[] { <span class="pl-c1">1</span>, <span class="pl-c1">2</span>, <span class="pl-c1">3</span> });</pre></div>
+
+<p>The value returned by FindMany by IDs is a list of the objects found, with their <code>_id</code> set (This is true for all of the FindMany methods).</p>
+
+<p>To find multiple objects by some JSONPath you can use the following:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> persons = collection.FindMany(<span class="pl-s"><span class="pl-pds">"</span>$[?(@.Name == 'Bob')]<span class="pl-pds">"</span></span>);</pre></div>
+
+<p>This allows you to have far more advanced control over Icarus' queries. You can pass in what ever JSONPath you want to select objects. Something to note is that all objects are stored within a JSON array so will always start with <code>$[?(</code>.</p>
+
+<p>The final method is to find multiple objects by field and name, for this you could use:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> persons = collection.FindMany(<span class="pl-s"><span class="pl-pds">"</span>Name<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Bob<span class="pl-pds">"</span></span>, IcarusEqualityFilter.NotEqual);</pre></div>
+
+<p>This method will construct a simple JSONPath for you if you aren't familiar with them. The objects returned here will be all objects that have the field <code>"Name"</code> that are not equal to the value <code>"Bob"</code>. The equality filter can be:</p>
+
+<ul>
+<li>Equal</li>
+<li>NotEqual</li>
+<li>LessThan</li>
+<li>GreaterThan</li>
+<li>LessThanOrEqual</li>
+<li>GreaterThanOrEqual</li>
+</ul>
+
+<h2>
+<a id="removing-objects" class="anchor" href="#removing-objects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Removing Objects</h2>
+
+<p>Like with inserting, there are two methods of removal:</p>
+
+<ul>
+<li><code>Remove(&lt;ID&gt;)</code></li>
+<li><code>RemoveMany(&lt;ID_ARRAY&gt;)</code></li>
+</ul>
+
+<p>To remove an object you will need the unique ID given by Icarus. If you haven't got it, then you will need to call one of the find methods first.</p>
+
+<p>To remove an object do:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> person = collection.FindMany(<span class="pl-s"><span class="pl-pds">"</span>Name<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Bob<span class="pl-pds">"</span></span>, IcarusEqualityFilter.Equal).Single();
+collection.Remove(person._id);</pre></div>
+
+<p>This will remove the object with passed unique ID. The remove method will also return the object that was removed.</p>
+
+<p>The RemoveMany method is basically the same, just it take an array of IDs and returns a list of removed objects:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> persons = collection.FindMany(<span class="pl-s"><span class="pl-pds">"</span>Age<span class="pl-pds">"</span></span>, <span class="pl-c1">11</span>, IcarusEqualityFilter.Equal);
+collection.RemoveMany(persons.Select(p =&gt; p._id).ToArray());</pre></div>
+
+<h2>
+<a id="updating-objects" class="anchor" href="#updating-objects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Updating Objects</h2>
+
+<p>The update calls will update a passed item in the collection, so long as the object has already been previously inserted. There are two update methods:</p>
+
+<ul>
+<li><code>Update(&lt;ITEM&gt;)</code></li>
+<li><code>UpdateMany(&lt;ITEM_ARRAY&gt;)</code></li>
+</ul>
+
+<p>To update one item you can use the following:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> person = collection.FindMany(<span class="pl-s"><span class="pl-pds">"</span>Name<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Bob<span class="pl-pds">"</span></span>, IcarusEqualityFilter.Equal).Single();
+
+person.Name = <span class="pl-s"><span class="pl-pds">"</span>John<span class="pl-pds">"</span></span>;
+collection.Update(person);</pre></div>
+
+<p>The update methods will each return the objects before the object was updated.</p>
+
+<p>To update multiple objects you can use the following:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">var</span> collection = datastore.GetCollection&lt;Person&gt;(<span class="pl-s"><span class="pl-pds">"</span>Person<span class="pl-pds">"</span></span>);
+<span class="pl-k">var</span> persons = collection.FindMany(<span class="pl-s"><span class="pl-pds">"</span>Age<span class="pl-pds">"</span></span>, <span class="pl-c1">11</span>, IcarusEqualityFilter.Equal);
+
+<span class="pl-k">for</span> (<span class="pl-k">var</span> i = <span class="pl-c1">0</span>; i &lt; persons.Count; i++)
+{
+    persons[i].Age = <span class="pl-c1">12</span>;
+}
+
+collection.UpdateMany(persons);</pre></div>
+
+<h1>
+<a id="to-do" class="anchor" href="#to-do" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>To Do</h1>
+
+<ul>
+<li>Look into making Icarus work better with massive datasets.</li>
+<li>Get Icarus working with parallel processes.</li>
+</ul>
+
+<h1>
+<a id="bugs-and-feature-requests" class="anchor" href="#bugs-and-feature-requests" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Bugs and Feature Requests</h1>
+
+<p>For any bugs you may find or features you wish to request, please create an <a href="https://github.com/Badgerati/Icarus/issues" title="Issues">issue</a> in GitHub.</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
