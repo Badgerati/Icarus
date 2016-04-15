@@ -35,9 +35,13 @@ Please note however, if you're choosing to disable persisting then you will **NE
 Installing Icarus
 =================
 
-For now you can clone the repository and build the `Icarus.Core` project, and use the `Icarus.Core.dll`.
+Icarus can be installed via NuGet:
 
-I will be uploading Icarus to NuGet soon.
+```bash
+Install-Package Icarus.Core
+```
+
+You can also clone the repository and build the `Icarus.Core` project, and use the `Icarus.Core.dll`.
 
 Usage
 =====
