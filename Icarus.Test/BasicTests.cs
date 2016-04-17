@@ -153,18 +153,19 @@ namespace Icarus.Test
         }
 
         [Test]
-        [TestCase(1, IcarusEqualityFilter.Equal, false)]
-        [TestCase(3, IcarusEqualityFilter.Equal, true)]
-        [TestCase(2, IcarusEqualityFilter.LessThan, false)]
-        [TestCase(1, IcarusEqualityFilter.LessThan, true)]
-        [TestCase(1, IcarusEqualityFilter.LessThanOrEqual, false)]
-        [TestCase(0, IcarusEqualityFilter.LessThanOrEqual, true)]
-        [TestCase(1, IcarusEqualityFilter.GreaterThan, false)]
-        [TestCase(2, IcarusEqualityFilter.GreaterThan, true)]
-        [TestCase(3, IcarusEqualityFilter.GreaterThanOrEqual, true)]
-        [TestCase(2, IcarusEqualityFilter.GreaterThanOrEqual, false)]
-        [TestCase(2, IcarusEqualityFilter.NotEqual, false)]
-        public void Find_Filter_Success(object value, IcarusEqualityFilter filter, bool isNull)
+        [TestCase(1, "SomeInt", IcarusEqualityFilter.Equal, false)]
+        [TestCase(3, "SomeInt", IcarusEqualityFilter.Equal, true)]
+        [TestCase(2, "SomeInt", IcarusEqualityFilter.LessThan, false)]
+        [TestCase(1, "SomeInt", IcarusEqualityFilter.LessThan, true)]
+        [TestCase(1, "SomeInt", IcarusEqualityFilter.LessThanOrEqual, false)]
+        [TestCase(0, "SomeInt", IcarusEqualityFilter.LessThanOrEqual, true)]
+        [TestCase(1, "SomeInt", IcarusEqualityFilter.GreaterThan, false)]
+        [TestCase(2, "SomeInt", IcarusEqualityFilter.GreaterThan, true)]
+        [TestCase(3, "SomeInt", IcarusEqualityFilter.GreaterThanOrEqual, true)]
+        [TestCase(2, "SomeInt", IcarusEqualityFilter.GreaterThanOrEqual, false)]
+        [TestCase(2, "SomeInt", IcarusEqualityFilter.NotEqual, false)]
+        [TestCase("hello1", "SomeString", IcarusEqualityFilter.Equal, true)]
+        public void Find_Filter_Success(object value, string field, IcarusEqualityFilter filter, bool isNull)
         {
             var icarus = IcarusClient.Instance;
             var obj1 = new SomeObject() { SomeInt = 1, SomeString = "Hello1", Temp = "Anything1" };

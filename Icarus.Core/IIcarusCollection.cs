@@ -32,6 +32,8 @@ namespace Icarus.Core
         IList<T> FindMany(string jsonPath);
         IList<T> FindMany(string fieldName, object value, IcarusEqualityFilter filter = IcarusEqualityFilter.Equal);
 
+        IList<T> All();
+
         T Remove(long id, bool persist = true);
         IList<T> RemoveMany(long[] ids, bool persist = true);
 

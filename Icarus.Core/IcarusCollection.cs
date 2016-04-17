@@ -408,6 +408,15 @@ namespace Icarus.Core
         }
 
         /// <summary>
+        /// Returns all objects within the collection.
+        /// </summary>
+        /// <returns>All objects in the collection.</returns>
+        public IList<T> All()
+        {
+            return FindMany("_id", 0, IcarusEqualityFilter.GreaterThan);
+        }
+
+        /// <summary>
         /// Updates an item with the specified identifier.
         /// </summary>
         /// <param name="item">The item to be used when updating the item with passed identifier.</param>
@@ -738,11 +747,11 @@ namespace Icarus.Core
         {
             if (value is string)
             {
-                return "\"" + value + "\"";
+                return "\'" + value + "\'";
             }
             else if (value is DateTime)
             {
-                return "\"" + ((DateTime)value).ToString("yyyy-MM-ddTHH:mm:ss.fffffffK") + "\"";
+                return "\'" + ((DateTime)value).ToString("yyyy-MM-ddTHH:mm:ss.fffffffK") + "\'";
             }
 
             return value.ToString();
