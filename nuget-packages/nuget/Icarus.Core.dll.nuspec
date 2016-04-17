@@ -14,7 +14,7 @@
     <copyright>Copyright 2016</copyright>
     <tags>icarus json datastore storage data store</tags>
     <dependencies>
-      <dependency id="Json.NET" version="8.0.3" />
+      <dependency id="Newtonsoft.Json" version="8.0.3" />
     </dependencies>
   </metadata>
 </package>
