@@ -9,6 +9,7 @@ License: MIT (see LICENSE for details)
 using NUnit.Framework;
 using Icarus.Core;
 using System.IO;
+using System;
 
 namespace Icarus.Test
 {
@@ -177,6 +178,50 @@ namespace Icarus.Test
             Assert.AreEqual(2, items[1]._id);
 
             var item = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").Find("SomeInt", value, filter);
+
+            if (isNull)
+            {
+                Assert.IsNull(item);
+            }
+            else
+            {
+                Assert.IsNotNull(item);
+            }
+        }
+
+        [Test]
+        [TestCase(IcarusEqualityFilter.Equal, false)]
+        [TestCase(IcarusEqualityFilter.LessThan, true)]
+        [TestCase(IcarusEqualityFilter.GreaterThan, false)]
+        public void Find_Filter_SuccessOnDates(IcarusEqualityFilter filter, bool isNull)
+        {
+            var icarus = IcarusClient.Instance;
+            var now = DateTime.Now;
+
+            var obj1 = new SomeObject() { SomeDate = now, Temp = "Anything1" };
+            var obj2 = new SomeObject() { SomeDate = now.AddDays(1), Temp = "Anything2" };
+
+            var items = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").InsertMany(new[] { obj1, obj2 });
+            Assert.AreEqual(2, items.Count);
+            Assert.AreEqual(1, items[0]._id);
+            Assert.AreEqual(2, items[1]._id);
+
+            var item = default(SomeObject);
+
+            switch (filter)
+            {
+                case IcarusEqualityFilter.Equal:
+                    item = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").Find("SomeDate", now, filter);
+                    break;
+
+                case IcarusEqualityFilter.NotEqual:
+                    item = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").Find("SomeDate", now.AddDays(-1), filter);
+                    break;
+
+                case IcarusEqualityFilter.GreaterThan:
+                    item = icarus.GetDataStore("Test").GetCollection<SomeObject>("Store").Find("SomeDate", now.AddMinutes(5), filter);
+                    break;
+            }
 
             if (isNull)
             {
@@ -474,6 +519,8 @@ namespace Icarus.Test
             get { return _temp.ToString(); }
             set { _temp = value; }
         }
+
+        public DateTime SomeDate;
     }
 
 }

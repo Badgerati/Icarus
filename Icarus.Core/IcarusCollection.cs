@@ -413,7 +413,7 @@ namespace Icarus.Core
         /// <returns>All objects in the collection.</returns>
         public IList<T> All()
         {
-            return FindMany("_id", 0, IcarusEqualityFilter.GreaterThan);
+            return FindMany("$[?(@._id > 0)]");
         }
 
         /// <summary>
@@ -510,7 +510,7 @@ namespace Icarus.Core
         /// <returns>
         /// The items before updating.
         /// </returns>
-        /// <exception cref="IcarusException">Attempting to update an item that has not yet been inserted into the collection, _id:  + items.Where(x =&gt; x._id != 0).First()._id</exception>
+        /// <exception cref="IcarusException">Attempting to update an item that has not yet been inserted into the collection, _id:</exception>
         public IList<T> UpdateMany(T[] items, bool persist = true)
         {
             if (items == default(T[]) || !items.Any())
