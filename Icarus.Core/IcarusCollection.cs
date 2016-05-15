@@ -753,6 +753,10 @@ namespace Icarus.Core
             {
                 return "\'" + ((DateTime)value).ToString("yyyy-MM-ddTHH:mm:ss.fffffffK") + "\'";
             }
+            else if (value is bool)
+            {
+                return value.ToString().ToLowerInvariant();
+            }
 
             return value.ToString();
         }
