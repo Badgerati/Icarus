@@ -36,6 +36,14 @@ namespace Icarus.Core
         /// </value>
         public string IcarusLocation { get; private set; }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance should create data stores/collections as access for everyone.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is access everyone; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsAccessEveryone { get; private set; }
+
         #endregion
 
         #region Fields
@@ -49,6 +57,7 @@ namespace Icarus.Core
         private IcarusClient()
         {
             _dataStores = new Dictionary<string, IIcarusDataStore>();
+            IsAccessEveryone = false;
         }
 
         #endregion
@@ -59,8 +68,10 @@ namespace Icarus.Core
         /// Initialises this Icarus instance.
         /// </summary>
         /// <param name="icarusLocation">The location of where the Icarus data stores are held.</param>
+        /// <param name="isAccessEveryone">if set to <c>true</c> [Icarus data is accessible by everyone].</param>
+        /// <returns>The IcarusClient for chaining</returns>
         /// <exception cref="DirectoryNotFoundException">If Icarus store cannot be found.</exception>
-        public IIcarus Initialise(string icarusLocation)
+        public IIcarus Initialise(string icarusLocation, bool isAccessEveryone = false)
         {
             var path = Path.GetFullPath(icarusLocation);
             if (!Directory.Exists(path))
@@ -69,6 +80,8 @@ namespace Icarus.Core
             }
 
             IcarusLocation = path;
+            IsAccessEveryone = isAccessEveryone;
+
             return this;
         }
 
@@ -81,7 +94,7 @@ namespace Icarus.Core
         {
             if (!_dataStores.ContainsKey(dataStoreName))
             {
-                _dataStores.Add(dataStoreName, new IcarusDataStore(IcarusLocation, dataStoreName));
+                _dataStores.Add(dataStoreName, new IcarusDataStore(IcarusLocation, dataStoreName, IsAccessEveryone));
             }
 
             return _dataStores[dataStoreName];

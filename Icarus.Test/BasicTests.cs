@@ -24,7 +24,7 @@ namespace Icarus.Test
         [TestFixtureSetUp]
         public void SetupBase()
         {
-            IcarusClient.Instance.Initialise(".");
+            IcarusClient.Instance.Initialise(".", false);
         }
 
         [TearDown]
@@ -127,7 +127,7 @@ namespace Icarus.Test
             Assert.AreEqual(1, item.SomeInt);
             Assert.AreEqual(1, item._id);
         }
-        
+
         [Test]
         public void Find_Success_Nothing()
         {
@@ -386,11 +386,11 @@ namespace Icarus.Test
             var items = icarus.GetDataStore(_dataStore).GetCollection<SomeObject>(_collection).FindMany(new[] { 1L, 2L });
             Assert.IsNotNull(items);
             Assert.AreEqual(2, items.Count);
-            
+
             Assert.AreEqual("Hello1", items[0].SomeString);
             Assert.AreEqual(1, items[0].SomeInt);
             Assert.AreEqual(1, items[0]._id);
-            
+
             Assert.IsNull(items[1]);
         }
 

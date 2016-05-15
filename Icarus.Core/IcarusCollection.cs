@@ -12,6 +12,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Principal;
+using System.Security.AccessControl;
 
 namespace Icarus.Core
 {
@@ -46,7 +48,7 @@ namespace Icarus.Core
         /// The collection location.
         /// </value>
         public string CollectionLocation { get; private set; }
-        
+
         /// <summary>
         /// Gets the data store location.
         /// </summary>
@@ -78,7 +80,9 @@ namespace Icarus.Core
         #endregion
 
         #region Fields
-        
+
+        private bool _isAccessEveryone;
+
         private long _nextPrimaryId = DefaultNextPrimaryId;
         private IDictionary<long, JToken> _primaryIndex = default(IDictionary<long, JToken>);
 
@@ -97,11 +101,13 @@ namespace Icarus.Core
         /// </summary>
         /// <param name="dataStoreLocation">The data store location.</param>
         /// <param name="collectionName">Name of the collection.</param>
-        public IcarusCollection(string dataStoreLocation, string collectionName)
+        /// <param name="isAccessEveryone">if set to <c>true</c> [Icarus data is accessible by everyone].</param>
+        public IcarusCollection(string dataStoreLocation, string collectionName, bool isAccessEveryone = false)
         {
             var path = Path.Combine(dataStoreLocation, collectionName + FileExtension);
+            _isAccessEveryone = isAccessEveryone;
 
-            // Create file if it doesn't exist
+            // Create collection if it doesn't exist
             if (!File.Exists(path))
             {
                 using (var file = File.CreateText(path))
@@ -110,6 +116,23 @@ namespace Icarus.Core
                 }
             }
 
+            // toggle access control to everyone
+            var security = File.GetAccessControl(path);
+            var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+            var rule = new FileSystemAccessRule(everyone, FileSystemRights.Modify | FileSystemRights.Synchronize, InheritanceFlags.None, PropagationFlags.None, AccessControlType.Allow);
+
+            if (_isAccessEveryone)
+            {
+                security.AddAccessRule(rule);
+            }
+            else
+            {
+                security.RemoveAccessRule(rule);
+            }
+
+            File.SetAccessControl(path, security);
+
+            // set collection locations
             CachingEnabled = true;
             CollectionName = collectionName;
             CollectionLocation = path;
@@ -120,7 +143,7 @@ namespace Icarus.Core
             {
                 _json = (JObject)JToken.ReadFrom(new JsonTextReader(reader));
             }
-            
+
             // Set next primary ID
             if (_json.HasValues)
             {
@@ -198,7 +221,7 @@ namespace Icarus.Core
                 {
                     _data.Remove(_jsonObj);
                 }
-                
+
                 throw new IcarusException("An exception occurred while trying to insert the item.", ex);
             }
             finally
@@ -270,7 +293,7 @@ namespace Icarus.Core
                         _primaryIndex.Add(id, _item);
                     }
                 }
-                
+
                 return _castItem;
             }
             catch (Exception ex)
@@ -470,7 +493,7 @@ namespace Icarus.Core
                             _primaryIndex.Add(item._id, _newItem);
                         }
                     }
-                    
+
                     return _castItem;
                 }
 
