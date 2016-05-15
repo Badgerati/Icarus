@@ -478,6 +478,29 @@ namespace Icarus.Test
             Assert.IsNull(item2);
         }
 
+        [Test]
+        public void Remove_ByItem_Success()
+        {
+            var icarus = IcarusClient.Instance;
+            var obj1 = new SomeObject() { SomeInt = 1, SomeString = "Hello1", Temp = "Anything1" };
+            var obj2 = new SomeObject() { SomeInt = 2, SomeString = "Hello2", Temp = "Anything2" };
+
+            var collection = icarus.GetDataStore(_dataStore).GetCollection<SomeObject>(_collection);
+
+            var items = collection.InsertMany(new[] { obj1, obj2 });
+            Assert.AreEqual(2, items.Count);
+            Assert.AreEqual(1, items[0]._id);
+            Assert.AreEqual(2, items[1]._id);
+
+            var item2 = collection.Remove(obj1);
+            Assert.IsNotNull(item2);
+            Assert.AreEqual("Hello1", item2.SomeString);
+            Assert.AreEqual(1, item2.SomeInt);
+
+            item2 = collection.Find(1);
+            Assert.IsNull(item2);
+        }
+
         #endregion
 
         #region Remove Many Tests
@@ -502,6 +525,31 @@ namespace Icarus.Test
             Assert.AreEqual(1, items2[0]._id);
 
             var item = icarus.GetDataStore(_dataStore).GetCollection<SomeObject>(_collection).Find(1);
+            Assert.IsNull(item);
+        }
+
+        [Test]
+        public void RemoveMany_ByItem_Success()
+        {
+            var icarus = IcarusClient.Instance;
+            var obj1 = new SomeObject() { SomeInt = 1, SomeString = "Hello1", Temp = "Anything1" };
+            var obj2 = new SomeObject() { SomeInt = 2, SomeString = "Hello2", Temp = "Anything2" };
+
+            var collection = icarus.GetDataStore(_dataStore).GetCollection<SomeObject>(_collection);
+
+            var items = collection.InsertMany(new[] { obj1, obj2 });
+            Assert.AreEqual(2, items.Count);
+            Assert.AreEqual(1, items[0]._id);
+            Assert.AreEqual(2, items[1]._id);
+
+            var items2 = collection.RemoveMany(new[] { obj1, obj2 });
+            Assert.IsNotNull(items2);
+            Assert.AreEqual(2, items2.Count);
+            Assert.AreEqual("Hello1", items2[0].SomeString);
+            Assert.AreEqual(1, items2[0].SomeInt);
+            Assert.AreEqual(1, items2[0]._id);
+
+            var item = collection.Find(1);
             Assert.IsNull(item);
         }
 

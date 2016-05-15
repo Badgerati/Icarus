@@ -588,12 +588,30 @@ namespace Icarus.Core
         }
 
         /// <summary>
+        /// Removes an item from the Icarus DataStore.
+        /// </summary>
+        /// <param name="item">The item to be removed.</param>
+        /// <param name="persist">if set to <c>true</c> [persist].</param>
+        /// <returns>
+        /// The item that was removed, null is returned if the item doesn't exist.
+        /// </returns>
+        public T Remove(T item, bool persist = true)
+        {
+            if (Equals(item, default(T)))
+            {
+                return default(T);
+            }
+
+            return Remove(item._id, persist);
+        }
+
+        /// <summary>
         /// Removes the items from the Icarus DataStore with the specified identifiers.
         /// </summary>
         /// <param name="ids">The identifiers for items to be removed.</param>
         /// <param name="persist">if set to <c>true</c> [persist].</param>
         /// <returns>
-        /// The items that were removed mapped to their ID, null is returned if the item doesn't exist.
+        /// The items that were removed, null is returned if the item doesn't exist.
         /// </returns>
         public IList<T> RemoveMany(long[] ids, bool persist = true)
         {
@@ -613,6 +631,24 @@ namespace Icarus.Core
                     Persist();
                 }
             }
+        }
+
+        /// <summary>
+        /// Removes the items from the Icarus DataStore.
+        /// </summary>
+        /// <param name="items">The items to be removed.</param>
+        /// <param name="persist">if set to <c>true</c> [persist].</param>
+        /// <returns>
+        /// The items that were removed, null is returned if the item doesn't exist.
+        /// </returns>
+        public IList<T> RemoveMany(T[] items, bool persist = true)
+        {
+            if (items == default(T[]) || !items.Any())
+            {
+                return default(IList<T>);
+            }
+
+            return RemoveMany(items.Select(x => x._id).ToArray(), persist);
         }
 
         /// <summary>
