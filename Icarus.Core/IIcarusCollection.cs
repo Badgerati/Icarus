@@ -35,7 +35,9 @@ namespace Icarus.Core
         IList<T> All();
 
         T Remove(long id, bool persist = true);
+        T Remove(T item, bool persist = true);
         IList<T> RemoveMany(long[] ids, bool persist = true);
+        IList<T> RemoveMany(T[] items, bool persist = true);
 
         T Update(T item, bool persist = true);
         IList<T> UpdateMany(T[] items, bool persist = true);
