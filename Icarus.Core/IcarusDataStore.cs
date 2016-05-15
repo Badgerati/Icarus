@@ -8,6 +8,8 @@ License: MIT (see LICENSE for details)
 
 using System.Collections.Generic;
 using System.IO;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Icarus.Core
 {
@@ -37,6 +39,7 @@ namespace Icarus.Core
         #region Fields
 
         private IDictionary<string, IIcarusCollection> _collections;
+        private bool _isAccessEveryone;
 
         #endregion
 
@@ -47,15 +50,35 @@ namespace Icarus.Core
         /// </summary>
         /// <param name="icarusLocation">The icarus location.</param>
         /// <param name="dataStoreName">Name of the data store.</param>
-        public IcarusDataStore(string icarusLocation, string dataStoreName)
+        /// <param name="isAccessEveryone">if set to <c>true</c> [Icarus data is accessible by everyone].</param>
+        public IcarusDataStore(string icarusLocation, string dataStoreName, bool isAccessEveryone = false)
         {
             var path = Path.Combine(icarusLocation, dataStoreName);
+            _isAccessEveryone = isAccessEveryone;
 
+            // create store if it does not exist
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
 
+            // toggle access control to everyone
+            var security = Directory.GetAccessControl(path);
+            var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+            var rule = new FileSystemAccessRule(everyone, FileSystemRights.Modify | FileSystemRights.Synchronize, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
+
+            if (_isAccessEveryone)
+            {
+                security.AddAccessRule(rule);
+            }
+            else
+            {
+                security.RemoveAccessRule(rule);
+            }
+
+            Directory.SetAccessControl(path, security);
+
+            // set store locations
             DataStoreName = dataStoreName;
             DataStoreLocation = path;
 
@@ -69,13 +92,16 @@ namespace Icarus.Core
         /// <summary>
         /// Gets the collection from the Icarus DataStore.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="collectionName">Name of the collection.</param>
-        /// <returns>The collection from the DataStore.</returns>
+        /// <returns>
+        /// The collection from the DataStore.
+        /// </returns>
         public IIcarusCollection<T> GetCollection<T>(string collectionName) where T : IIcarusObject
         {
             if (!_collections.ContainsKey(collectionName))
             {
-                _collections.Add(collectionName, new IcarusCollection<T>(DataStoreLocation, collectionName));
+                _collections.Add(collectionName, new IcarusCollection<T>(DataStoreLocation, collectionName, _isAccessEveryone));
             }
 
             return (IIcarusCollection<T>)_collections[collectionName];
