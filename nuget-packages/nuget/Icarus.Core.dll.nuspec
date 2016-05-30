@@ -12,9 +12,10 @@
     <description>Icarus is a simple JSON data store.</description>
     <releaseNotes>https://github.com/Badgerati/Icarus/releases</releaseNotes>
     <copyright>Copyright 2016</copyright>
-    <tags>icarus json datastore storage data store</tags>
+    <tags>icarus json datastore storage data store encrypt</tags>
     <dependencies>
       <dependency id="Newtonsoft.Json" version="8.0.3" />
+      <dependency id="Haxxor.Framework" version="1.0.0.1" />
     </dependencies>
   </metadata>
 </package>

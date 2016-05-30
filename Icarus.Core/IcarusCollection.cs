@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Principal;
 using System.Security.AccessControl;
+using Haxxor.Framework;
+using Haxxor.Framework.Core.Interfaces;
 
 namespace Icarus.Core
 {
@@ -21,6 +23,8 @@ namespace Icarus.Core
     {
 
         #region Constants
+
+        private const string NewEmptyFile = "{}";
 
         private const string FileExtension = ".json";
         private const string NextPrimaryIdKey = "NextPrimaryId";
@@ -77,12 +81,27 @@ namespace Icarus.Core
         /// </value>
         public bool CachingEnabled { get; set; }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance is encryted.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is encryted; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsEncryted { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is access everyone.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is access everyone; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsAccessEveryone { get; private set; }
+
         #endregion
 
         #region Fields
 
-        private bool _isAccessEveryone;
-
+        private IEncryptionModule _encryptionModule;
         private long _nextPrimaryId = DefaultNextPrimaryId;
         private IDictionary<long, JToken> _primaryIndex = default(IDictionary<long, JToken>);
 
@@ -102,17 +121,23 @@ namespace Icarus.Core
         /// <param name="dataStoreLocation">The data store location.</param>
         /// <param name="collectionName">Name of the collection.</param>
         /// <param name="isAccessEveryone">if set to <c>true</c> [Icarus data is accessible by everyone].</param>
-        public IcarusCollection(string dataStoreLocation, string collectionName, bool isAccessEveryone = false)
+        /// <param name="isEncryted">if set to <c>true</c> the collection will be encrypted.</param>
+        /// <param name="encryptionKey">The optional encryption key. If not supplied a default will be used.</param>
+        public IcarusCollection(string dataStoreLocation, string collectionName, bool isAccessEveryone = false, bool isEncryted = false)
         {
             var path = Path.Combine(dataStoreLocation, collectionName + FileExtension);
-            _isAccessEveryone = isAccessEveryone;
+
+            IsEncryted = isEncryted;
+            _encryptionModule = HaxxorFactory.GetByType(EncryptionType.AES256);
+
+            IsAccessEveryone = isAccessEveryone;
 
             // Create collection if it doesn't exist
             if (!File.Exists(path))
             {
                 using (var file = File.CreateText(path))
                 {
-                    file.WriteLine("{}");
+                    file.WriteLine(IsEncryted ? _encryptionModule.Encrypt(NewEmptyFile, false) : NewEmptyFile);
                 }
             }
 
@@ -121,7 +146,7 @@ namespace Icarus.Core
             var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
             var rule = new FileSystemAccessRule(everyone, FileSystemRights.Modify | FileSystemRights.Synchronize, InheritanceFlags.None, PropagationFlags.None, AccessControlType.Allow);
 
-            if (_isAccessEveryone)
+            if (IsAccessEveryone)
             {
                 security.AddAccessRule(rule);
             }
@@ -139,10 +164,7 @@ namespace Icarus.Core
             DataStoreLocation = dataStoreLocation;
 
             // Load contents of file
-            using (var reader = File.OpenText(CollectionLocation))
-            {
-                _json = (JObject)JToken.ReadFrom(new JsonTextReader(reader));
-            }
+            LoadJsonData();
 
             // Set next primary ID
             if (_json.HasValues)
@@ -677,7 +699,10 @@ namespace Icarus.Core
         /// <summary>
         /// Persists this instance to the Icarus DataStore.
         /// If you're calling Inserts and Updates with persisting disabled,
-        /// then it would be wise to call this method one even now and then.
+        /// then it would be wise to call this method once every now and then.
+        ///
+        /// If Encryption is enabled, this method will encrypt the data
+        /// before it is saved.
         /// </summary>
         public void Persist()
         {
@@ -687,11 +712,19 @@ namespace Icarus.Core
                 _json[NextPrimaryIdKey] = NextPrimaryId;
 
                 // Write everything to the data store
-                using (var writer = File.CreateText(CollectionLocation))
+                if (IsEncryted)
                 {
-                    using (var jsonWriter = new JsonTextWriter(writer))
+                    var hash = _encryptionModule.Encrypt(_json.ToString(), false);
+                    File.WriteAllText(CollectionLocation, hash);
+                }
+                else
+                {
+                    using (var writer = File.CreateText(CollectionLocation))
                     {
-                        _json.WriteTo(jsonWriter);
+                        using (var jsonWriter = new JsonTextWriter(writer))
+                        {
+                            _json.WriteTo(jsonWriter);
+                        }
                     }
                 }
             }
@@ -721,10 +754,7 @@ namespace Icarus.Core
             }
 
             // Load contents of file
-            using (var reader = File.OpenText(CollectionLocation))
-            {
-                _json = (JObject)JToken.ReadFrom(new JsonTextReader(reader));
-            }
+            LoadJsonData();
 
             // Set next primary ID
             if (_json.HasValues)
@@ -744,6 +774,62 @@ namespace Icarus.Core
         #endregion
 
         #region Private Helpers
+
+        private void LoadJsonData()
+        {
+            try
+            {
+                // try decrypting or just reading the data first
+                // if it fails, it might be because the encryption was toggled
+                using (var reader = File.OpenText(CollectionLocation))
+                {
+                    if (IsEncryted)
+                    {
+                        var hash = reader.ReadToEnd();
+                        var data = _encryptionModule.Decrypt(hash);
+
+                        using (var sReader = new StringReader(data))
+                        {
+                            _json = (JObject)JToken.ReadFrom(new JsonTextReader(sReader));
+                        }
+                    }
+                    else
+                    {
+                        _json = (JObject)JToken.ReadFrom(new JsonTextReader(reader));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // here, we'll check the reverse of the above in case encryption was toggled
+                // so just parsing if encrypted, or decrypted if not encrypted
+                try
+                {
+                    using (var reader = File.OpenText(CollectionLocation))
+                    {
+                        if (IsEncryted)
+                        {
+                            _json = (JObject)JToken.ReadFrom(new JsonTextReader(reader));
+                        }
+                        else
+                        {
+                            var hash = reader.ReadToEnd();
+                            var data = _encryptionModule.Decrypt(hash);
+
+                            using (var sReader = new StringReader(data))
+                            {
+                                _json = (JObject)JToken.ReadFrom(new JsonTextReader(sReader));
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // re-throw the original exception, as this was the original offender
+                    throw ex;
+                }
+            }
+        }
 
         private T CastToObject(JToken item)
         {

@@ -34,10 +34,16 @@ namespace Icarus.Core
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="collectionName">Name of the collection.</param>
+        /// <param name="isEncryted">if set to <c>true</c> the collection be encrypted.</param>
         /// <returns>
         /// The collection from the DataStore.
         /// </returns>
-        IIcarusCollection<T> GetCollection<T>(string collectionName) where T : IIcarusObject;
+        IIcarusCollection<T> GetCollection<T>(string collectionName, bool isEncryted = false) where T : IIcarusObject;
+
+        /// <summary>
+        /// Clears this instances cache of collections.
+        /// </summary>
+        void Clear();
 
     }
 

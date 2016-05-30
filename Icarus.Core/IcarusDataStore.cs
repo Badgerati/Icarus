@@ -39,6 +39,7 @@ namespace Icarus.Core
         #region Fields
 
         private IDictionary<string, IIcarusCollection> _collections;
+        private bool _isEncryptionEnabled;
         private bool _isAccessEveryone;
 
         #endregion
@@ -54,6 +55,7 @@ namespace Icarus.Core
         public IcarusDataStore(string icarusLocation, string dataStoreName, bool isAccessEveryone = false)
         {
             var path = Path.Combine(icarusLocation, dataStoreName);
+            _isEncryptionEnabled = IcarusClient.Instance.IsEncryptionEnabled;
             _isAccessEveryone = isAccessEveryone;
 
             // create store if it does not exist
@@ -94,17 +96,37 @@ namespace Icarus.Core
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="collectionName">Name of the collection.</param>
+        /// <param name="isEncryted">if set to <c>true</c> the collection be encrypted.</param>
         /// <returns>
         /// The collection from the DataStore.
         /// </returns>
-        public IIcarusCollection<T> GetCollection<T>(string collectionName) where T : IIcarusObject
+        public IIcarusCollection<T> GetCollection<T>(string collectionName, bool isEncryted = false) where T : IIcarusObject
         {
             if (!_collections.ContainsKey(collectionName))
             {
-                _collections.Add(collectionName, new IcarusCollection<T>(DataStoreLocation, collectionName, _isAccessEveryone));
+                _collections.Add(
+                    collectionName,
+                    new IcarusCollection<T>(
+                        DataStoreLocation,
+                        collectionName,
+                        _isAccessEveryone,
+                        (_isEncryptionEnabled || isEncryted)));
             }
 
             return (IIcarusCollection<T>)_collections[collectionName];
+        }
+
+        /// <summary>
+        /// Clears this instances cache of collections.
+        /// </summary>
+        public void Clear()
+        {
+            if (_collections == default(IDictionary<string, IIcarusCollection>))
+            {
+                return;
+            }
+
+            _collections.Clear();
         }
 
         #endregion

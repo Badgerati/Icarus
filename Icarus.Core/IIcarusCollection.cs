@@ -57,6 +57,23 @@ namespace Icarus.Core
         bool CachingEnabled { get; set; }
 
         /// <summary>
+        /// Gets a value indicating whether this instance is encryted.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is encryted; otherwise, <c>false</c>.
+        /// </value>
+        bool IsEncryted { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is access everyone.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is access everyone; otherwise, <c>false</c>.
+        /// </value>
+        bool IsAccessEveryone { get; }
+
+
+        /// <summary>
         /// Inserts the specified item.
         /// </summary>
         /// <param name="item">The item to insert.</param>

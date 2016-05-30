@@ -6,7 +6,7 @@ Icarus
 [![Code Climate](https://codeclimate.com/github/Badgerati/Icarus/badges/gpa.svg)](https://codeclimate.com/github/Badgerati/Icarus)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Badgerati/Icarus/master/LICENSE.txt)
 
-Icarus is a simple JSON DataStore tool, no running services just reference the library and point Icarus to a location. All data will be saved at the location in plain JSON format. Icarus uses JSON.NET behind the scenes.
+Icarus is a simple JSON DataStore tool, no running services just reference the library and point Icarus to a location. All data will be saved at the location in plain JSON format. You can also specify to encrypt all contents of collections as well. Icarus uses JSON.NET behind the scenes.
 
 All data is stored on memory when your application starts, for quicker queries and processing.
 
@@ -18,6 +18,7 @@ Features
 ========
 
 * Data is stored in JSON format.
+* Ability to encrypt data so it isn't store in plain JSON.
 * All data is stored into some specified location.
 * DataStores can have multiple collections.
 * Fast and clean.
@@ -79,6 +80,21 @@ var collection = datastore.GetCollection<OBJECT_TYPE>("<COLLECTION_NAME>");
 ```
 
 The `<OBJECT_TYPE>` for the collection is the generic type that Icarus will use when deserializing the JSON objects. It is important to note that this generic type MUST inherit the `IcarusObject` type.
+
+Encrypting Collections
+---------------------
+The encryption will be done via AES256, using the Haxxor framework I wrote a while back. The key and IV are randomly generated each time, and stored with the data for decryption later on.
+
+The default for encryption is disabled. If the `IsEncryptionEnabled` in the `IcarusClient` is set to true, then this acts like a total override, enabling encryption for all data stores and collections. If it is left as false (the default), the encryption can be enabled on a per collection basis:
+
+```C#
+var store = IcarusClient.Instance.GetDataStore(<DATA_STORE_NAME>);
+var collection = store.GetCollection<OBJECT_TYPE>(<COLLECTION_NAME>, isEncrypted: <true_or_false>);
+```
+
+When retrieving the collection from a data store, you can specify the encryption type; again the default is false for encryption.
+
+Also, it's possible to enable/disable encryption after it was already disabled/enabled and it will store appropriately. As a note however, when toggling you may have to wait for the client's/data store's cache to flush out. There are `Clear` methods to do this manually.
 
 IcasusObject
 ------------

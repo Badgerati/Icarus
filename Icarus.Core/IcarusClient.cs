@@ -44,6 +44,16 @@ namespace Icarus.Core
         /// </value>
         public bool IsAccessEveryone { get; private set; }
 
+        /// <summary>
+        /// Gets a value indicating whether encryption is enabled, this is a master override.
+        /// If this value is true, all collections will be encrypted; if false it's up to the
+        /// user to determine if encrypted is enabled at a collection level.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [encryption enabled]; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsEncryptionEnabled { get; set; }
+
         #endregion
 
         #region Fields
@@ -58,6 +68,7 @@ namespace Icarus.Core
         {
             _dataStores = new Dictionary<string, IIcarusDataStore>();
             IsAccessEveryone = false;
+            IsEncryptionEnabled = false;
         }
 
         #endregion
@@ -98,6 +109,19 @@ namespace Icarus.Core
             }
 
             return _dataStores[dataStoreName];
+        }
+
+        /// <summary>
+        /// Clears this instances cache of data stores.
+        /// </summary>
+        public void Clear()
+        {
+            if (_dataStores == default(IDictionary<string, IIcarusDataStore>))
+            {
+                return;
+            }
+
+            _dataStores.Clear();
         }
 
         #endregion
