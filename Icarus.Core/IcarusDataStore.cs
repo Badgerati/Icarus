@@ -6,6 +6,7 @@ Company: Cadaeic Studios
 License: MIT (see LICENSE for details)
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.AccessControl;
@@ -65,20 +66,27 @@ namespace Icarus.Core
             }
 
             // toggle access control to everyone
-            var security = Directory.GetAccessControl(path);
-            var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
-            var rule = new FileSystemAccessRule(everyone, FileSystemRights.Modify | FileSystemRights.Synchronize, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
-
-            if (_isAccessEveryone)
+            try
             {
-                security.AddAccessRule(rule);
-            }
-            else
-            {
-                security.RemoveAccessRule(rule);
-            }
+                var security = Directory.GetAccessControl(path);
+                var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+                var rule = new FileSystemAccessRule(everyone, FileSystemRights.Modify | FileSystemRights.Synchronize, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow);
 
-            Directory.SetAccessControl(path, security);
+                if (_isAccessEveryone)
+                {
+                    security.AddAccessRule(rule);
+                }
+                else
+                {
+                    security.RemoveAccessRule(rule);
+                }
+
+                Directory.SetAccessControl(path, security);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Not ideal, and needs logging, but if we fail to set the access controls we shouldn't bomb out
+            }
 
             // set store locations
             DataStoreName = dataStoreName;

@@ -142,20 +142,27 @@ namespace Icarus.Core
             }
 
             // toggle access control to everyone
-            var security = File.GetAccessControl(path);
-            var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
-            var rule = new FileSystemAccessRule(everyone, FileSystemRights.Modify | FileSystemRights.Synchronize, InheritanceFlags.None, PropagationFlags.None, AccessControlType.Allow);
-
-            if (IsAccessEveryone)
+            try
             {
-                security.AddAccessRule(rule);
-            }
-            else
-            {
-                security.RemoveAccessRule(rule);
-            }
+                var security = File.GetAccessControl(path);
+                var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+                var rule = new FileSystemAccessRule(everyone, FileSystemRights.Modify | FileSystemRights.Synchronize, InheritanceFlags.None, PropagationFlags.None, AccessControlType.Allow);
 
-            File.SetAccessControl(path, security);
+                if (IsAccessEveryone)
+                {
+                    security.AddAccessRule(rule);
+                }
+                else
+                {
+                    security.RemoveAccessRule(rule);
+                }
+
+                File.SetAccessControl(path, security);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Not ideal, and needs logging, but if we fail to set the access controls we shouldn't bomb out
+            }
 
             // set collection locations
             CachingEnabled = true;
