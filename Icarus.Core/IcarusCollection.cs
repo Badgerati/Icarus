@@ -562,7 +562,7 @@ namespace Icarus.Core
         /// <returns>
         /// The items before updating.
         /// </returns>
-        /// <exception cref="IcarusException">Attempting to update an item that has not yet been inserted into the collection, _id:</exception>
+        /// <exception cref="IcarusException">Attempting to update an item that has not yet been inserted into the collection</exception>
         public IList<T> UpdateMany(T[] items, bool persist = true)
         {
             if (items == default(T[]) || !items.Any())
@@ -570,9 +570,9 @@ namespace Icarus.Core
                 return default(IList<T>);
             }
 
-            if (items.Any(x => x._id != 0))
+            if (items.Any(x => x._id == 0))
             {
-                throw new IcarusException("Attempting to update an item that has not yet been inserted into the collection, _id: " + items.Where(x => x._id != 0).First()._id);
+                throw new IcarusException("Attempting to update an item that has not yet been inserted into the collection");
             }
 
             try

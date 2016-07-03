@@ -584,6 +584,39 @@ namespace Icarus.Test
 
         #endregion
 
+        #region Update Many Tests
+
+        [Test]
+        public void UpdateMany_Success()
+        {
+            var icarus = IcarusClient.Instance;
+            var collection = icarus.GetDataStore(_dataStore).GetCollection<SomeObject2>(_collection);
+
+            var obj1 = new SomeObject2() { SomeInt = 1, SomeString = "Hello1", Temp = "Anything1" };
+            var obj2 = new SomeObject2() { SomeInt = 2, SomeString = "Hello2", Temp = "Anything2" };
+
+            var items = collection.InsertMany(new SomeObject2[] { obj1, obj2 });
+            Assert.AreEqual(1, items[0]._id);
+            Assert.AreEqual(2, items[1]._id);
+
+            obj1.SomeString = "Updated";
+            obj2.SomeString = "Updated";
+            items = collection.UpdateMany(new SomeObject2[] { obj1, obj2 });
+            Assert.IsNotNull(items);
+
+            Assert.AreEqual("Hello1", items[0].SomeString);
+            Assert.AreEqual(1, items[0].SomeInt);
+            Assert.AreEqual(1, items[0]._id);
+
+            var item = collection.Find(1);
+            Assert.IsNotNull(item);
+            Assert.AreEqual("Updated", item.SomeString);
+            Assert.AreEqual(1, item.SomeInt);
+            Assert.AreEqual(1, item._id);
+        }
+
+        #endregion
+
         #region Large Datasets
 
         [Test]
