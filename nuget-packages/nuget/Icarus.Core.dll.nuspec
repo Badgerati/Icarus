@@ -6,13 +6,13 @@
     <authors>Badgerati</authors>
     <owners>Badgerati</owners>
     <licenseUrl>https://github.com/Badgerati/Icarus/blob/master/LICENSE.txt</licenseUrl>
-    <projectUrl>http://badgerati.github.io/Icarus/</projectUrl>
+    <projectUrl>https://github.com/Badgerati/Icarus</projectUrl>
     <iconUrl>https://cdn.rawgit.com/Badgerati/Icarus/master/Images/icon.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Icarus is a simple JSON data store.</description>
     <releaseNotes>https://github.com/Badgerati/Icarus/releases</releaseNotes>
     <copyright>Copyright 2016</copyright>
-    <tags>icarus json datastore storage data store encrypt</tags>
+    <tags>icarus json datastore storage data store encrypt base collections</tags>
     <dependencies>
       <dependency id="Newtonsoft.Json" version="9.0.1" />
       <dependency id="Haxxor.Framework" version="1.0.0.1" />

@@ -6,29 +6,44 @@ Company: Cadaeic Studios
 License: MIT (see LICENSE for details)
  */
 
+using System;
+using System.Collections.Generic;
+
 namespace Icarus.Core
 {
     public interface IIcarus
     {
 
         /// <summary>
-        /// Gets the location of Icarus.
+        /// Gets the default/first location of Icarus from the locations dictionary.
         /// </summary>
         /// <value>
-        /// The location of Icarus.
+        /// The default/first location of Icarus.
         /// </value>
-        string IcarusLocation { get; }
+        string Location { get; }
 
         /// <summary>
-        /// Gets a value indicating whether this instance should create data stores/collections as access for everyone.
+        /// Gets the locations used by Icarus, which is a key-value pair.
+        /// The key is the location-tag specified during initialise, and the
+        /// value is the location for that tag.
+        /// If you never specified a tag, then it will be the "default" tag.
         /// </summary>
         /// <value>
-        /// <c>true</c> if this instance is access everyone; otherwise, <c>false</c>.
+        /// The locations used by Icarus.
         /// </value>
-        bool IsAccessEveryone { get; }
+        IDictionary<string, string> Locations { get; }
 
         /// <summary>
-        /// Gets a value indicating whether encryption is enabled, this is a master override.
+        /// Gets or sets a value indicating whether this instance should create data
+        /// stores/collections that is accessible by everyone.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is accessible by everyone; otherwise, <c>false</c>.
+        /// </value>
+        bool IsAccessEveryone { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether encryption is enabled, this is a master override.
         /// If this value is true, all collections will be encrypted; if false it's up to the
         /// user to determine if encrypted is enabled at a collection level.
         /// </summary>
@@ -42,17 +57,24 @@ namespace Icarus.Core
         /// Initialises this Icarus instance.
         /// </summary>
         /// <param name="icarusLocation">The location of where the Icarus data stores are held.</param>
-        /// <param name="isAccessEveryone">if set to <c>true</c> [Icarus data is accessible by everyone].</param>
-        /// <returns>The IcarusClient for chaining</returns>
+        /// <param name="locationTag">The location tag, if left blank will be the default tag.</param>
+        /// <returns>
+        /// The IcarusClient for chaining
+        /// </returns>
         /// <exception cref="DirectoryNotFoundException">If Icarus store cannot be found.</exception>
-        IIcarus Initialise(string icarusLocation, bool isAccessEveryone = false);
+        IIcarus Initialise(string icarusLocation, string locationTag = "");
 
         /// <summary>
-        /// Gets the DataStore from Icarus.
+        /// Gets the DataStore from Icarus, you can optionally speicify the location tag to use.
+        /// If the location tag is left blank, the default tag will be used.
         /// </summary>
         /// <param name="dataStoreName">Name of the data store.</param>
-        /// <returns>The DataStore.</returns>
-        IIcarusDataStore GetDataStore(string dataStoreName);
+        /// <param name="locationTag">The location tag, if left blank will be the default tag.</param>
+        /// <param name="isAccessEveryone">if set to <c>true</c> the Icarus datastore is accessible by everyone.</param>
+        /// <returns>
+        /// The DataStore.
+        /// </returns>
+        IIcarusDataStore GetDataStore(string dataStoreName, string locationTag = "", bool isAccessEveryone = false);
 
         /// <summary>
         /// Clears this instances cache of data stores.

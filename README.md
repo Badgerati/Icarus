@@ -1,66 +1,66 @@
-Icarus
-======
-
+# Icarus
 [![Build Status](https://travis-ci.org/Badgerati/Icarus.svg?branch=master)](https://travis-ci.org/Badgerati/Icarus)
 [![Build status](https://ci.appveyor.com/api/projects/status/4p7lnp05lebirjxm?svg=true)](https://ci.appveyor.com/project/Badgerati/icarus)
 [![Code Climate](https://codeclimate.com/github/Badgerati/Icarus/badges/gpa.svg)](https://codeclimate.com/github/Badgerati/Icarus)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Badgerati/Icarus/master/LICENSE.txt)
 
-Icarus is a simple JSON DataStore tool, no running services just reference the library and point Icarus to a location. All data will be saved at the location in plain JSON format. You can also specify to encrypt all contents of collections as well. Icarus uses JSON.NET behind the scenes.
+Icarus is a simple JSON DataStore tool, no running services just reference the library and point Icarus to a location(s). All data will be saved at the location(s) in plain JSON format. You can also specify to encrypt all contents of collections as well. Icarus uses JSON.NET behind the scenes.
 
-All data is stored on memory when your application starts, for quicker queries and processing.
+All data is stored in memory when your application starts, for quicker queries and processing.
 
 Notes:
  * Icarus is in beta, so currently is designed for small to medium datasets (about 1 - 50,000 records per collection). If you're using large datasets, it might be best to use something like MongoDB. (you can risk using Icarus if you like though, I won't stop you!)
  * Icarus has not been tested on parallel processed yet, so use at risk.
 
-Features
-========
-
+# Features
 * Data is stored in JSON format.
 * Ability to encrypt data so it isn't store in plain JSON.
-* All data is stored into some specified location.
-* DataStores can have multiple collections.
+* All data is stored into some specified location, you can specify multiple locations.
+* Data stores can have multiple collections.
 * Fast and clean.
 * Able to Insert, Update, Remove and Find.
 * Ability to cache data for extra speed.
 
-Performance Tips
-================
+# Performance Tips
 If you find that inserting/updating or removing records is slow, then each of the methods has an optional `persist` parameter that you can pass. By default this is enabled, so every time you insert/update or remove a record it is persisted to storage. If, however, you pass this in as false then your calls will dramatically increase in speed.
 
 Please note however, if you're choosing to disable persisting then you will **NEED** to persist the collection to storage every now and then, and definitely when your application closes. I can't imagine you'd want to lose everything, right?
 
 (If you're working with medium to large datasets, it might be wise to have persisting disabled and to persist once in a while instead)
 
-Installing Icarus
-=================
-
+# Installing Icarus
 Icarus can be installed via NuGet:
 
 ```bash
 Install-Package Icarus.Core
 ```
 
-You can also clone the repository and build the `Icarus.Core` project, and use the `Icarus.Core.dll`.
+You can also clone the repository and build the `Icarus.Core` project, and use the `Icarus.Core.dll` - you will also need to use the `Haxxor.framework.dll` and `Newtonsoft.Json.dll`.
 
-Usage
-=====
-
+# Usage
 Using Icarus might feel somewhat similar to MongoDB. You can insert, update, remove and find your data inside of collections for each data store you create.
 
-Initialise the IcarusClient
----------------------------
+## Initialise the IcarusClient
 The main point of entry for everything is the `IcarusClient`. This is a lazy initialised class for accessing your data stores and collections. To initialise the client you use:
 
 ```C#
-IcarusClient.Instance.Initialise("<SOME_LOCATION>");
+IcarusClient.Instance.Initialise("<SOME_LOCATION>" [, "<TAG>"]);
 ```
 
-The `<SOME_LOCATION>` is where you would place the location to where you want Icarus to write everything. The `Initialise` method should really only be called once (it can be called multiple times if you wish), so its best calling it when your application spins up.
+The `<SOME_LOCATION>` is where you would place the location to where you want Icarus to write everything.
+The optional `<TAG>` parameter is something you can specify if you need Icarus to write to multiple locations. If this isn't passed then it is defaulted to `"default"`. This <TAG> is used when calling `GetDataStore`, which will allow you to specify a tag so that Icarus knows where you want the data store to be created.
 
-Creating Data Stores and Collections
------------------------------------
+For example:
+
+```C#
+var client = IcarusClient.Instance;
+client.Initialise("C:\\logs", "logs");
+client.GetDataStore("ApplicationLogs", "logs");
+```
+
+If you don't pass the tag into the `GetDataStore` method, then it will use the default or first entry.
+
+## Creating Data Stores and Collections
 A data store contains many collections, and Icarus can manage multiple data stores. Just think of a data store as being a database, and the collections being a database's tables.
 
 The only location you need to setup manually is the location where Icarus will write everything. This is the location that will be used to initialise the `IcarusClient`.
@@ -70,7 +70,7 @@ To create your data stores and collections is very simple, just use them in code
 To get your data store use:
 
 ```C#
-var datastore = IcarusClient.Instance.GetDataStore("<DATA_STORE_NAME>");
+var datastore = IcarusClient.Instance.GetDataStore("<DATA_STORE_NAME>" [, <TAG>]);
 ```
 
 and to get your collection from the data store use:
@@ -81,14 +81,13 @@ var collection = datastore.GetCollection<OBJECT_TYPE>("<COLLECTION_NAME>");
 
 The `<OBJECT_TYPE>` for the collection is the generic type that Icarus will use when deserializing the JSON objects. It is important to note that this generic type MUST inherit the `IcarusObject` type.
 
-Encrypting Collections
----------------------
+## Encrypting Collections
 The encryption will be done via AES256, using the Haxxor framework I wrote a while back. The key and IV are randomly generated each time, and stored with the data for decryption later on.
 
 The default for encryption is disabled. If the `IsEncryptionEnabled` in the `IcarusClient` is set to true, then this acts like a total override, enabling encryption for all data stores and collections. If it is left as false (the default), the encryption can be enabled on a per collection basis:
 
 ```C#
-var store = IcarusClient.Instance.GetDataStore(<DATA_STORE_NAME>);
+var store = IcarusClient.Instance.GetDataStore(<DATA_STORE_NAME> [, <TAG>]);
 var collection = store.GetCollection<OBJECT_TYPE>(<COLLECTION_NAME>, isEncrypted: <true_or_false>);
 ```
 
@@ -96,8 +95,7 @@ When retrieving the collection from a data store, you can specify the encryption
 
 Also, it's possible to enable/disable encryption after it was already disabled/enabled and it will store appropriately. As a note however, when toggling you may have to wait for the client's/data store's cache to flush out. There are `Clear` methods to do this manually.
 
-IcasusObject
-------------
+## IcasusObject
 All objects that will be stored with Icarus must inherit the `IcarusObject` class. This class contains the `_id` property that Icarus will use to set the object's unique ID against. It is imperative that you do not alter this value at all.
 
 ```C#
@@ -108,8 +106,7 @@ public class Person : IcarusObject
 
 The `_id` is a public value, so can be used as you wish.
 
-Inserting Objects
------------------
+## Inserting Objects
 There are two methods to insert data into your collections:
 
  * `Insert(<ITEM>)`
@@ -145,8 +142,7 @@ var items = collection.InsertMany(new[] { person1, person2 });
 
 This time, the InsertMany method will return a list of the objects inserted.
 
-Finding Objects
----------------
+## Finding Objects
 There are 6 ways of finding objects with Icarus:
 
  * `Find(<ID>)`
@@ -199,8 +195,7 @@ This method will construct a simple JSONPath for you if you aren't familiar with
  * LessThanOrEqual
  * GreaterThanOrEqual
 
-Removing Objects
-----------------
+## Removing Objects
 Like with inserting, there are two methods of removal:
 
  * `Remove(<ID>)`
@@ -226,8 +221,7 @@ var persons = collection.FindMany("Age", 11, IcarusEqualityFilter.Equal);
 collection.RemoveMany(persons.Select(p => p._id).ToArray());
 ```
 
-Updating Objects
-----------------
+## Updating Objects
 The update calls will update a passed item in the collection, so long as the object has already been previously inserted. There are two update methods:
 
  * `Update(<ITEM>)`
@@ -253,20 +247,15 @@ var persons = collection.FindMany("Age", 11, IcarusEqualityFilter.Equal);
 
 for (var i = 0; i < persons.Count; i++)
 {
-	persons[i].Age = 12;
+    persons[i].Age = 12;
 }
 
 collection.UpdateMany(persons);
 ```
 
-To Do
-=====
-
+# To Do
 * Look into making Icarus work better with massive datasets.
 * Get Icarus working with parallel processes.
 
-Bugs and Feature Requests
-=========================
-
+# Bugs and Feature Requests
 For any bugs you may find or features you wish to request, please create an [issue](https://github.com/Badgerati/Icarus/issues "Issues") in GitHub.
-

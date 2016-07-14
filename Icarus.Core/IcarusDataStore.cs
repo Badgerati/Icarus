@@ -40,7 +40,6 @@ namespace Icarus.Core
         #region Fields
 
         private IDictionary<string, IIcarusCollection> _collections;
-        private bool _isEncryptionEnabled;
         private bool _isAccessEveryone;
 
         #endregion
@@ -56,7 +55,6 @@ namespace Icarus.Core
         public IcarusDataStore(string icarusLocation, string dataStoreName, bool isAccessEveryone = false)
         {
             var path = Path.Combine(icarusLocation, dataStoreName);
-            _isEncryptionEnabled = IcarusClient.Instance.IsEncryptionEnabled;
             _isAccessEveryone = isAccessEveryone;
 
             // create store if it does not exist
@@ -118,7 +116,7 @@ namespace Icarus.Core
                         DataStoreLocation,
                         collectionName,
                         _isAccessEveryone,
-                        (_isEncryptionEnabled || isEncryted)));
+                        (IcarusClient.Instance.IsEncryptionEnabled || isEncryted)));
             }
 
             return (IIcarusCollection<T>)_collections[collectionName];
