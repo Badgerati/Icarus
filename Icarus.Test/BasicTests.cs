@@ -24,7 +24,8 @@ namespace Icarus.Test
         [TestFixtureSetUp]
         public void SetupBase()
         {
-            IcarusClient.Instance.Initialise(".", false);
+            IcarusClient.Instance.Initialise(".");
+            IcarusClient.Instance.IsAccessEveryone = false;
             IcarusClient.Instance.IsEncryptionEnabled = false;
             IcarusClient.Instance.Clear();
         }
@@ -42,7 +43,37 @@ namespace Icarus.Test
 
                 IcarusClient.Instance.GetDataStore(_dataStore).GetCollection<SomeObject2>(_collection).Refresh(false);
             }
+
+            path = Path.GetFullPath(".\\Test\\InnerTest\\" + _collection + ".json");
+            if (IcarusClient.Instance.Locations.ContainsKey("test2") && File.Exists(path))
+            {
+                using (var file = File.CreateText(path))
+                {
+                    file.WriteLine("{}");
+                }
+
+                IcarusClient.Instance.GetDataStore("InnerTest", "test2").GetCollection<SomeObject2>(_collection).Refresh(false);
+            }
         }
+
+        #region Two Icarus Locations
+
+        [Test]
+        public void TwoIcarusLocations_Insert_Success()
+        {
+            IcarusClient.Instance.Initialise(".\\Test", "test2");
+
+            var icarus = IcarusClient.Instance;
+            var obj = new SomeObject2() { SomeInt = 1, SomeString = "Hello", Temp = "Anything" };
+
+            var item = icarus.GetDataStore("InnerTest", "test2").GetCollection<SomeObject2>(_collection).Insert(obj);
+            Assert.AreEqual(1, item._id);
+
+            var path = Path.GetFullPath(".\\Test\\InnerTest\\" + _collection + ".json");
+            Assert.IsTrue(File.Exists(path));
+        }
+
+        #endregion
 
         #region Insert Tests
 
