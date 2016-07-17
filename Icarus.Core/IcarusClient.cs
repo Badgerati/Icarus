@@ -156,17 +156,37 @@ namespace Icarus.Core
         }
 
         /// <summary>
-        /// Gets the DataStore from Icarus, you can optionally speicify the location tag to use.
+        /// Gets the data store from Icarus, you can optionally speicify the location tag to use.
         /// If the location tag is left blank, the default tag will be used.
         /// </summary>
         /// <param name="dataStoreName">Name of the data store.</param>
         /// <param name="locationTag">The location tag, if left blank will be the default tag.</param>
         /// <param name="isAccessEveryone">if set to <c>true</c> the Icarus datastore is accessible by everyone.</param>
         /// <returns>
-        /// The DataStore.
+        /// The data store.
         /// </returns>
         public IIcarusDataStore GetDataStore(string dataStoreName, string locationTag = "", bool isAccessEveryone = false)
         {
+            var isNew = false;
+            return GetDataStore(dataStoreName, out isNew, locationTag: locationTag, isAccessEveryone: isAccessEveryone);
+        }
+
+        /// <summary>
+        /// Gets the data store from Icarus, you can optionally speicify the location tag to use.
+        /// If the location tag is left blank, the default tag will be used.
+        /// The isNew out flag will be true if teh data store had to be created, false otherwise.
+        /// </summary>
+        /// <param name="dataStoreName">Name of the data store.</param>
+        /// <param name="isNew">if set to <c>true</c> then the data store was created as a part of this call.</param>
+        /// <param name="locationTag">The location tag, if left blank will be the default tag.</param>
+        /// <param name="isAccessEveryone">if set to <c>true</c> the Icarus datastore is accessible by everyone.</param>
+        /// <returns>
+        /// The data store.
+        /// </returns>
+        public IIcarusDataStore GetDataStore(string dataStoreName, out bool isNew, string locationTag = "", bool isAccessEveryone = false)
+        {
+            isNew = false;
+
             if (!Locations.Any())
             {
                 return default(IIcarusDataStore);
@@ -183,7 +203,14 @@ namespace Icarus.Core
 
             if (!_dataStores.ContainsKey(storeTagKey))
             {
-                _dataStores.Add(storeTagKey, new IcarusDataStore(Locations[locationTag], dataStoreName, (IsAccessEveryone || isAccessEveryone)));
+                var path = string.Empty;
+                isNew = IcarusDataStore.Exists(Locations[locationTag], dataStoreName, out path);
+
+                _dataStores.Add(storeTagKey,
+                    new IcarusDataStore(
+                        Locations[locationTag],
+                        dataStoreName,
+                        (IsAccessEveryone || isAccessEveryone)));
             }
 
             return _dataStores[storeTagKey];

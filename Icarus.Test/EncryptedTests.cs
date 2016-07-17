@@ -56,9 +56,29 @@ namespace Icarus.Test
                     file.WriteLine(_encryptionModule.Encrypt("{}", false));
                 }
 
-                IcarusClient.Instance.GetDataStore("InnerTest", "test2").GetCollection<SomeObject2>(_collection).Refresh(false);
+                IcarusClient.Instance.GetDataStore("InnerTest", "test2").GetCollection<SomeObject>(_collection).Refresh(false);
             }
         }
+
+        #region Check to see if isNew
+
+        [Test]
+        public void CheckIsNew_Success()
+        {
+            var icarus = IcarusClient.Instance;
+            var obj = new SomeObject() { SomeInt = 1, SomeString = "Hello", Temp = "Anything" };
+
+            var isNewDataStore = true;
+            var isNewCollection = true;
+
+            var item = icarus.GetDataStore(_dataStore, out isNewDataStore).GetCollection<SomeObject>(_collection, out isNewCollection).Insert(obj);
+            Assert.AreEqual(1, item._id);
+
+            Assert.AreEqual(Directory.Exists(".\\Test"), isNewDataStore);
+            Assert.AreEqual(File.Exists(".\\Test\\" + _collection + ".json"), isNewCollection);
+        }
+
+        #endregion
 
         #region Two Icarus Locations
 
@@ -68,9 +88,9 @@ namespace Icarus.Test
             IcarusClient.Instance.Initialise(".\\Test", "test2");
 
             var icarus = IcarusClient.Instance;
-            var obj = new SomeObject2() { SomeInt = 1, SomeString = "Hello", Temp = "Anything" };
+            var obj = new SomeObject() { SomeInt = 1, SomeString = "Hello", Temp = "Anything" };
 
-            var item = icarus.GetDataStore("InnerTest", "test2").GetCollection<SomeObject2>(_collection).Insert(obj);
+            var item = icarus.GetDataStore("InnerTest", "test2").GetCollection<SomeObject>(_collection).Insert(obj);
             Assert.AreEqual(1, item._id);
 
             var path = Path.GetFullPath(".\\Test\\InnerTest\\" + _collection + ".json");

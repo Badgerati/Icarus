@@ -125,7 +125,7 @@ namespace Icarus.Core
         /// <param name="encryptionKey">The optional encryption key. If not supplied a default will be used.</param>
         public IcarusCollection(string dataStoreLocation, string collectionName, bool isAccessEveryone = false, bool isEncryted = false)
         {
-            var path = Path.Combine(dataStoreLocation, collectionName + FileExtension);
+            var path = string.Empty;
 
             IsEncryted = isEncryted;
             _encryptionModule = HaxxorFactory.GetByType(EncryptionType.AES256);
@@ -133,7 +133,7 @@ namespace Icarus.Core
             IsAccessEveryone = isAccessEveryone;
 
             // Create collection if it doesn't exist
-            if (!File.Exists(path))
+            if (!Exists(dataStoreLocation, collectionName, out path))
             {
                 using (var file = File.CreateText(path))
                 {
@@ -776,6 +776,25 @@ namespace Icarus.Core
 
             // Indexes
             _primaryIndex = new Dictionary<long, JToken>(10);
+        }
+
+        #endregion
+
+        #region Static Helpers
+
+        /// <summary>
+        /// Checks to see if the collection specified exists at the specified data store location.
+        /// </summary>
+        /// <param name="dataStoreLocation">The data store location.</param>
+        /// <param name="collectionName">Name of the collection.</param>
+        /// <param name="fullpath">The full path to the collection is returned.</param>
+        /// <returns>
+        /// Returns true if the collection exists, false otherwise.
+        /// </returns>
+        public static bool Exists(string dataStoreLocation, string collectionName, out string fullpath)
+        {
+            fullpath = Path.Combine(dataStoreLocation, collectionName + FileExtension);
+            return File.Exists(fullpath);
         }
 
         #endregion
