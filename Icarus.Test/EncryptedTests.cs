@@ -68,14 +68,17 @@ namespace Icarus.Test
             var icarus = IcarusClient.Instance;
             var obj = new SomeObject() { SomeInt = 1, SomeString = "Hello", Temp = "Anything" };
 
+            var expectedDataStore = !Directory.Exists(".\\Test");
+            var expectedCollection = !File.Exists(".\\Test\\" + _collection + ".json");
+
             var isNewDataStore = true;
             var isNewCollection = true;
 
             var item = icarus.GetDataStore(_dataStore, out isNewDataStore).GetCollection<SomeObject>(_collection, out isNewCollection).Insert(obj);
             Assert.AreEqual(1, item._id);
 
-            Assert.AreEqual(!Directory.Exists(".\\Test"), isNewDataStore, "Data store check incorrect");
-            Assert.AreEqual(!File.Exists(".\\Test\\" + _collection + ".json"), isNewCollection, "Collection check incorrect");
+            Assert.AreEqual(expectedDataStore, isNewDataStore, "Data store check incorrect");
+            Assert.AreEqual(expectedCollection, isNewCollection, "Collection check incorrect");
         }
 
         #endregion
