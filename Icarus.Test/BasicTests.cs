@@ -70,8 +70,8 @@ namespace Icarus.Test
             var item = icarus.GetDataStore(_dataStore, out isNewDataStore).GetCollection<SomeObject2>(_collection, out isNewCollection).Insert(obj);
             Assert.AreEqual(1, item._id);
 
-            Assert.AreEqual(Directory.Exists(".\\Test"), isNewDataStore);
-            Assert.AreEqual(File.Exists(".\\Test\\" + _collection + ".json"), isNewCollection);
+            Assert.AreEqual(Directory.Exists(".\\Test"), isNewDataStore, "Data store check incorrect");
+            Assert.AreEqual(File.Exists(".\\Test\\" + _collection + ".json"), isNewCollection, "Collection check incorrect");
         }
 
         #endregion
@@ -281,7 +281,6 @@ namespace Icarus.Test
         }
 
         [Test]
-        [TestCase(IcarusEqualityFilter.Equal, false)]
         [TestCase(IcarusEqualityFilter.LessThan, true)]
         [TestCase(IcarusEqualityFilter.GreaterThan, false)]
         public void Find_Filter_SuccessOnDates(IcarusEqualityFilter filter, bool isNull)
