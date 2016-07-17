@@ -56,6 +56,29 @@ namespace Icarus.Test
             }
         }
 
+        #region Check to see if isNew
+
+        [Test]
+        public void CheckIsNew_Success()
+        {
+            var icarus = IcarusClient.Instance;
+            var obj = new SomeObject2() { SomeInt = 1, SomeString = "Hello", Temp = "Anything" };
+
+            var expectedDataStore = !Directory.Exists(".\\Test");
+            var expectedCollection = !File.Exists(".\\Test\\" + _collection + ".json");
+
+            var isNewDataStore = true;
+            var isNewCollection = true;
+
+            var item = icarus.GetDataStore(_dataStore, out isNewDataStore).GetCollection<SomeObject2>(_collection, out isNewCollection).Insert(obj);
+            Assert.AreEqual(1, item._id);
+
+            Assert.AreEqual(expectedDataStore, isNewDataStore, "Data store check incorrect");
+            Assert.AreEqual(expectedCollection, isNewCollection, "Collection check incorrect");
+        }
+
+        #endregion
+
         #region Two Icarus Locations
 
         [Test]
@@ -261,7 +284,6 @@ namespace Icarus.Test
         }
 
         [Test]
-        [TestCase(IcarusEqualityFilter.Equal, false)]
         [TestCase(IcarusEqualityFilter.LessThan, true)]
         [TestCase(IcarusEqualityFilter.GreaterThan, false)]
         public void Find_Filter_SuccessOnDates(IcarusEqualityFilter filter, bool isNull)

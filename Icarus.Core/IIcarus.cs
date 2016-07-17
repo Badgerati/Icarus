@@ -65,16 +65,30 @@ namespace Icarus.Core
         IIcarus Initialise(string icarusLocation, string locationTag = "");
 
         /// <summary>
-        /// Gets the DataStore from Icarus, you can optionally speicify the location tag to use.
+        /// Gets the data store from Icarus, you can optionally speicify the location tag to use.
         /// If the location tag is left blank, the default tag will be used.
         /// </summary>
         /// <param name="dataStoreName">Name of the data store.</param>
         /// <param name="locationTag">The location tag, if left blank will be the default tag.</param>
         /// <param name="isAccessEveryone">if set to <c>true</c> the Icarus datastore is accessible by everyone.</param>
         /// <returns>
-        /// The DataStore.
+        /// The data store.
         /// </returns>
         IIcarusDataStore GetDataStore(string dataStoreName, string locationTag = "", bool isAccessEveryone = false);
+
+        /// <summary>
+        /// Gets the data store from Icarus, you can optionally speicify the location tag to use.
+        /// If the location tag is left blank, the default tag will be used.
+        /// The isNew out flag will be true if the data store had to be created, false otherwise.
+        /// </summary>
+        /// <param name="dataStoreName">Name of the data store.</param>
+        /// <param name="isNew">if set to <c>true</c> then the data store was created as a part of this call.</param>
+        /// <param name="locationTag">The location tag, if left blank will be the default tag.</param>
+        /// <param name="isAccessEveryone">if set to <c>true</c> the Icarus datastore is accessible by everyone.</param>
+        /// <returns>
+        /// The data store.
+        /// </returns>
+        IIcarusDataStore GetDataStore(string dataStoreName, out bool isNew, string locationTag = "", bool isAccessEveryone = false);
 
         /// <summary>
         /// Clears this instances cache of data stores.
