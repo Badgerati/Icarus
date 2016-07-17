@@ -130,7 +130,7 @@ namespace Icarus.Core
             if (!_collections.ContainsKey(collectionName))
             {
                 var path = string.Empty;
-                isNew = IcarusCollection<T>.Exists(DataStoreLocation, collectionName, out path);
+                isNew = !IcarusCollection<T>.Exists(DataStoreLocation, collectionName, out path);
 
                 _collections.Add(collectionName,
                     new IcarusCollection<T>(

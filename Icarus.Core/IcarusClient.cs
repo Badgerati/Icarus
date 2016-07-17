@@ -204,7 +204,7 @@ namespace Icarus.Core
             if (!_dataStores.ContainsKey(storeTagKey))
             {
                 var path = string.Empty;
-                isNew = IcarusDataStore.Exists(Locations[locationTag], dataStoreName, out path);
+                isNew = !IcarusDataStore.Exists(Locations[locationTag], dataStoreName, out path);
 
                 _dataStores.Add(storeTagKey,
                     new IcarusDataStore(
